@@ -20,6 +20,7 @@ use EasySuite\Common\Oidc\OidcClient;
 use EasySuite\Common\Oidc\RevokedSessions;
 use EasySuite\Common\Oidc\UserProvisioner;
 use EasySuite\Common\S2S\Client;
+use EasySuite\Common\S2S\ConsoleAccess;
 use EasySuite\Common\Support\Clock;
 use EasySuite\Common\Support\TenantContext;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
@@ -50,6 +51,8 @@ class EasySuiteServiceProvider extends ServiceProvider
         $this->app->singleton(Client::class, fn ($app) => new Client(
             $app->make(Http::class), $this->cache(), $app->make(OidcClient::class)
         ));
+
+        $this->app->singleton(ConsoleAccess::class, fn ($app) => new ConsoleAccess($app->make(Client::class), $this->cache()));
 
         $this->app->bind(UserProvisioner::class, fn () => app(config('easysuite.login.provisioner')));
 

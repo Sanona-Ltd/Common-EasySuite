@@ -68,6 +68,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Konsolen-Rollen (Orbis entscheidet, wer in die Konsole einer App darf)
+    |--------------------------------------------------------------------------
+    */
+    'console_access' => [
+        'fresh_seconds' => 60,   // so lange gilt eine Antwort von Orbis ohne neue Frage
+        'stale_seconds' => 3600, // so lange gilt sie noch, wenn Orbis nicht erreichbar ist
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Service-zu-Service
     |--------------------------------------------------------------------------
     | `audience` ist die client_id des Ziel-Systems in Auth.
