@@ -4,10 +4,12 @@ namespace EasySuite\Common\Tests\Feature;
 
 use EasySuite\Common\Jwt\InvalidTokenException;
 use EasySuite\Common\Jwt\Jwk;
+use EasySuite\Common\Jwt\JwksProvider;
 use EasySuite\Common\Jwt\TokenVerifier;
 use EasySuite\Common\Jwt\VerifiedToken;
 use EasySuite\Common\Testing\FakeAuthServer;
 use EasySuite\Common\Tests\TestCase;
+use Illuminate\Support\Facades\Http;
 
 class TokenVerifierTest extends TestCase
 {
@@ -153,5 +155,22 @@ class TokenVerifierTest extends TestCase
         $this->auth->publishKeyOf($rotated);
 
         $this->assertSame('user-1', $this->verify($rotated->accessToken())->sub());
+    }
+
+    public function test_a_local_key_source_is_used_without_any_http_request(): void
+    {
+        Http::fake(); // would return 200 with an empty body for anything
+        $jwks = $this->auth->jwks()['keys'][0];
+        app(JwksProvider::class)->useLocalSource(
+            'https://auth.test/.well-known/jwks.json',
+            fn () => [$jwks['kid'] => Jwk::toPem($jwks)]
+        );
+
+        $this->assertSame('user-1', $this->verify($this->auth->accessToken())->sub());
+        Http::assertNothingSent();
+
+        // An unknown kid is rejected without trying to refetch.
+        $this->assertRejected($this->auth->accessToken([], ['kid' => 'other']));
+        Http::assertNothingSent();
     }
 }

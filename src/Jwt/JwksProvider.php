@@ -18,9 +18,27 @@ class JwksProvider
         private readonly int $ttl = 600,
     ) {}
 
+    /** @var array<string, \Closure(): array<string, string>> */
+    private array $local = [];
+
+    /**
+     * Keys of this very system (Auth verifies tokens it issued itself): served from memory instead of an HTTP
+     * round trip to its own JWKS endpoint.
+     *
+     * @param  \Closure(): array<string, string>  $keys  kid => PEM
+     */
+    public function useLocalSource(string $uri, \Closure $keys): void
+    {
+        $this->local[$uri] = $keys;
+    }
+
     /** @return array<string, string> kid => PEM */
     public function keys(string $uri): array
     {
+        if (isset($this->local[$uri])) {
+            return ($this->local[$uri])();
+        }
+
         return $this->cache->get($this->key($uri)) ?? $this->fetch($uri);
     }
 
@@ -32,7 +50,7 @@ class JwksProvider
             return $pem;
         }
 
-        if ($this->cache->add($this->key($uri).':refresh', 1, 60)) {
+        if (! isset($this->local[$uri]) && $this->cache->add($this->key($uri).':refresh', 1, 60)) {
             $keys = $this->fetch($uri);
 
             if ($pem = $this->match($keys, $kid)) {
