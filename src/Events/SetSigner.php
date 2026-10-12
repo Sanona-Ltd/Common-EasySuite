@@ -46,6 +46,37 @@ class SetSigner
         return $builder->getToken($config->signer(), $config->signingKey())->toString();
     }
 
+    /**
+     * Signs an arbitrary JWT (e.g. a policy bundle) with this system's key: `iss` = our URL, `iat` = now,
+     * `kid` in the header. `aud` is required so a token can never be replayed at a system it was not meant for.
+     *
+     * @param  array<string, mixed>  $claims
+     */
+    public function signClaims(string $audience, array $claims): string
+    {
+        $config = Configuration::forAsymmetricSigner(
+            new Sha256,
+            InMemory::plainText($this->privatePem()),
+            InMemory::plainText($this->publicPem())
+        );
+
+        $builder = $config->builder()
+            ->withHeader('kid', $this->keyId())
+            ->issuedBy(rtrim((string) config('easysuite.self.url'), '/'))
+            ->permittedFor($audience)
+            ->issuedAt($this->clock->now());
+
+        foreach ($claims as $name => $value) {
+            if (in_array($name, ['iss', 'aud', 'iat', 'exp', 'nbf', 'jti', 'sub'], true)) {
+                continue; // the registered claims are set above, never from caller input
+            }
+
+            $builder = $builder->withClaim($name, $value);
+        }
+
+        return $builder->getToken($config->signer(), $config->signingKey())->toString();
+    }
+
     public function isConfigured(): bool
     {
         return (bool) (config('easysuite.events.signing_key') ?: config('easysuite.events.signing_key_path'));

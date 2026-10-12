@@ -287,4 +287,22 @@ class EventsTest extends TestCase
     {
         $this->getJson('/.well-known/jwks.json')->assertNotFound();
     }
+
+    public function test_sign_claims_issues_a_verifiable_bundle_style_token(): void
+    {
+        $this->generateSigningKey();
+        $signer = app(SetSigner::class);
+        config(['easysuite.services.security.url' => 'https://app.test', 'easysuite.self.url' => 'https://app.test']);
+        Http::fake(['https://app.test/.well-known/jwks.json' => Http::response(['keys' => [Jwk::fromPublicPem($signer->publicPem())]])]);
+
+        $jwt = $signer->signClaims('https://app.test', ['tid' => 't1', 'version' => 3, 'policies' => [], 'iss' => 'https://evil.test', 'sub' => 'forged']);
+
+        $token = app(TokenVerifier::class)->verify($jwt, 'https://app.test', 'https://app.test/.well-known/jwks.json', 'https://app.test', 30, false);
+
+        $this->assertSame('t1', $token->tid());
+        $this->assertSame(3, $token->claim('version'));
+        $this->assertSame('https://app.test', $token->issuer(), 'iss cannot be overridden by the claims');
+        $this->assertNull($token->sub(), 'registered claims from the caller are ignored');
+        $this->assertSame($signer->keyId(), $token->header('kid'));
+    }
 }
