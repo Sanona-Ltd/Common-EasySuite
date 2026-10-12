@@ -101,14 +101,14 @@ return [
         'send_scope' => 'events:send',
 
         // Aussteller, deren Events wir akzeptieren: issuer => jwks_uri
-        'trusted_issuers' => [
+        'trusted_issuers' => json_decode((string) env('EASYSUITE_EVENTS_TRUSTED_ISSUERS', '{}'), true) ?: [
             // 'https://auth.easysuite.ch' => 'https://auth.easysuite.ch/.well-known/jwks.json',
         ],
 
         // Empfänger unserer Events:
         // ['audience' => 'https://security.easysuite.ch', 'endpoint' => 'https://security.easysuite.ch/s2s/events',
         //  's2s_audience' => '<client_id von Security>', 'events' => ['*']]
-        'subscriptions' => [],
+        'subscriptions' => json_decode((string) env('EASYSUITE_EVENTS_SUBSCRIPTIONS', '[]'), true) ?: [],
 
         'max_skew_seconds' => 300,
         'dedupe_ttl' => 60 * 60 * 24 * 7,
