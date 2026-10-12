@@ -45,7 +45,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'login' => [
-        'enabled' => true,
+        'enabled' => env('EASYSUITE_LOGIN_ENABLED', true),
         'route_prefix' => 'auth',
         'middleware' => ['web'],
         'redirect_uri' => env('EASYSUITE_REDIRECT_URI'), // Default: url('/auth/callback')
@@ -89,13 +89,13 @@ return [
     |--------------------------------------------------------------------------
     */
     'events' => [
-        'enabled' => true,
+        'enabled' => env('EASYSUITE_EVENTS_ENABLED', true),
         'route_prefix' => 's2s',
 
         // Eigener Signaturschlüssel (PEM-Inhalt ODER Dateipfad), nur nötig, wenn dieses System Events sendet.
         'signing_key' => env('EASYSUITE_EVENTS_SIGNING_KEY'),
         'signing_key_path' => env('EASYSUITE_EVENTS_SIGNING_KEY_PATH'),
-        'publish_jwks' => true, // GET /.well-known/jwks.json mit dem eigenen Public Key
+        'publish_jwks' => env('EASYSUITE_EVENTS_PUBLISH_JWKS', true), // GET /.well-known/jwks.json mit dem eigenen Public Key
 
         // Scope, den der Sender im S2S-Token für das Event-POST anfordert.
         'send_scope' => 'events:send',
