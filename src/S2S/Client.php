@@ -78,7 +78,7 @@ class Client
         ]));
 
         if ($response->failed() || ! $response->json('access_token')) {
-            throw new S2SException("Could not obtain an S2S token for audience '{$audience}' (HTTP {$response->status()}).");
+            throw new S2SException($this->tokenFailure($audience, $scopes, $response));
         }
 
         $token = $response->json('access_token');
@@ -97,6 +97,22 @@ class Client
     public function forgetAudience(string $audience, array $scopes = []): void
     {
         $this->cache->forget($this->cacheKey($audience, $scopes));
+    }
+
+    /** What Auth said, and what to do about it: "HTTP 400" alone cost an afternoon. */
+    private function tokenFailure(string $audience, array $scopes, $response): string
+    {
+        $error = (string) $response->json('error', '');
+        $detail = trim($error.($response->json('error_description') ? ': '.$response->json('error_description') : '').($response->json('hint') ? ' ('.$response->json('hint').')' : ''));
+        $hint = match ($error) {
+            'invalid_scope' => 'A requested scope is not granted to this client: add it to the scopes of the app registration in Orbis (requested: '.($scopes ? implode(' ', $scopes) : 'none').').',
+            'unauthorized_client', 'unsupported_grant_type' => 'This client may not use client_credentials: tick that grant type in the app registration in Orbis.',
+            'invalid_client' => 'Client id or secret are not accepted: check EASYSUITE_CLIENT_ID and EASYSUITE_CLIENT_SECRET.',
+            'invalid_target' => 'Auth does not know the audience: check the EASYSUITE_*_AUDIENCE of the target system.',
+            default => null,
+        };
+
+        return "Could not obtain an S2S token for audience '{$audience}' (HTTP {$response->status()}".($detail !== '' ? ", {$detail}" : '').').'.($hint ? ' '.$hint : '');
     }
 
     private function tokenEndpoint(): string

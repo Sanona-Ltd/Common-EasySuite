@@ -88,6 +88,11 @@ return [
         'security' => ['url' => env('EASYSUITE_SECURITY_URL', 'https://security.easysuite.ch'), 'audience' => env('EASYSUITE_SECURITY_AUDIENCE')],
         'billing' => ['url' => env('EASYSUITE_BILLING_URL', 'https://billing.easysuite.ch'),   'audience' => env('EASYSUITE_BILLING_AUDIENCE')],
     ],
+    // easysuite:doctor: per service the scopes this system needs there (service => [scopes]). A system sets its own.
+    'doctor' => [
+        'checks' => [],
+    ],
+
     's2s' => [
         'timeout' => 10,
         'retries' => 2,

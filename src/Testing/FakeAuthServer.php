@@ -64,6 +64,8 @@ class FakeAuthServer
 
     private ?int $tokenEndpointFailure = null;
 
+    private array $tokenEndpointError = ['error' => 'invalid_client'];
+
     public function jwks(): array
     {
         return ['keys' => [Jwk::fromPublicPem($this->publicPem), ...$this->extraKeys]];
@@ -78,9 +80,10 @@ class FakeAuthServer
     }
 
     /** Der Token-Endpoint antwortet ab jetzt mit diesem Fehlerstatus. */
-    public function failTokenEndpoint(int $status = 401): self
+    public function failTokenEndpoint(int $status = 401, string $error = 'invalid_client', ?string $description = null): self
     {
         $this->tokenEndpointFailure = $status;
+        $this->tokenEndpointError = array_filter(['error' => $error, 'error_description' => $description]);
 
         return $this;
     }
@@ -168,7 +171,7 @@ class FakeAuthServer
 
             "{$base}/oauth/token" => function (Request $request) {
                 if ($this->tokenEndpointFailure !== null) {
-                    return Http::response(['error' => 'invalid_client'], $this->tokenEndpointFailure);
+                    return Http::response($this->tokenEndpointError, $this->tokenEndpointFailure);
                 }
 
                 if ($request['grant_type'] === 'client_credentials') {
