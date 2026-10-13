@@ -22,6 +22,7 @@ use EasySuite\Common\Oidc\UserProvisioner;
 use EasySuite\Common\S2S\Client;
 use EasySuite\Common\S2S\ConsoleAccess;
 use EasySuite\Common\Support\Clock;
+use EasySuite\Common\Support\PullEnvCommand;
 use EasySuite\Common\Support\TenantContext;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Client\Factory as Http;
@@ -76,7 +77,7 @@ class EasySuiteServiceProvider extends ServiceProvider
         $router->aliasMiddleware('easysuite.session', EnforceSession::class);
 
         if ($this->app->runningInConsole()) {
-            $this->commands([DispatchOutboxCommand::class]);
+            $this->commands([DispatchOutboxCommand::class, PullEnvCommand::class]);
         }
 
         if (config('easysuite.login.enabled')) {

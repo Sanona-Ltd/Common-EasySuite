@@ -107,6 +107,10 @@ composer install && composer test && composer lint
 
 Windows: PHP braucht `extras/ssl/openssl.cnf` für Schlüsselerzeugung. `Testing\Rsa` findet sie neben `php.exe` selbst.
 
+## Konfiguration aus Infisical
+
+`php artisan easysuite:env:pull` baut die `.env` des Systems aus seinem Infisical-Ordner (Secrets-API, Universal Auth). Vorher steht in der `.env` nur: `INFISICAL_URL`, `INFISICAL_PROJECT_ID`, `INFISICAL_ENVIRONMENT`, `INFISICAL_CLIENT_ID`, `INFISICAL_CLIENT_SECRET`, `INFISICAL_FOLDER` (z. B. `/orbis_easysuite`). Deploy-Schritt: `php artisan easysuite:env:pull && php artisan config:cache`. Die Infisical-Zugangsdaten bleiben in der neuen `.env`, die alte liegt als `.env.previous` daneben. `--dry-run` zeigt nur Schlüsselnamen (neu / geändert / nur in der alten Datei), nie Werte. Eine leere oder unlesbare Antwort lässt die `.env` unangetastet.
+
 ## Releases
 
 Die Apps beziehen das Paket per Composer aus diesem Repo (`"easysuite/common": "^0.1"`, VCS-Quelle). Eine Änderung kommt erst an, wenn sie getaggt ist:
