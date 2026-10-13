@@ -106,3 +106,14 @@ composer install && composer test && composer lint
 ```
 
 Windows: PHP braucht `extras/ssl/openssl.cnf` für Schlüsselerzeugung. `Testing\Rsa` findet sie neben `php.exe` selbst.
+
+## Releases
+
+Die Apps beziehen das Paket per Composer aus diesem Repo (`"easysuite/common": "^0.1"`, VCS-Quelle). Eine Änderung kommt erst an, wenn sie getaggt ist:
+
+```
+git tag -a v0.1.1 -m "…" && git push origin v0.1.1      # in Common
+composer update easysuite/common                         # in jeder App, danach Tests und committen
+```
+
+Auf dem Server braucht Composer Lesezugriff auf das private Repo (Deploy-Key, oder `COMPOSER_AUTH` mit einem GitHub-Token: `{"github-oauth":{"github.com":"<token>"}}`).
